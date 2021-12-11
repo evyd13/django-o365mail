@@ -1,14 +1,51 @@
 import threading
 
 from django.core.mail.backends.base import BaseEmailBackend
-from django.conf import settings
 import O365
+import re
+from django.core.mail.message import EmailMultiAlternatives
+from . import settings # It's a mask to apply defaults
 
 """
 A wrapper that manages the O365 API for sending emails.
 Uses an identity (auth_flow_type == 'credentials').
 See https://docs.microsoft.com/en-us/graph/auth-v2-service?context=graph%2Fapi%2F1.0&view=graph-rest-1.0 for more details.
 """
+
+def get_html_message(message):
+    """
+    Returns None if the email is plain text only, otherwise returns the HTML message
+    """
+    if type(message) == EmailMultiAlternatives:
+        if message.alternatives:
+            for alt in message.alternatives:
+                if alt[1] == 'text/html':
+                    return alt[0]
+    return None
+
+def get_message_body(message):
+    """
+    Function to get the body for the email message, depending on settings
+    """
+    html_body = get_html_message(message)
+    if not html_body:
+        if settings.O365_MAIL_REPLACE_LINE_ENDINGS:
+            html_body = message.body.replace("\n", "<br />\n")
+        else:
+            html_body = message.body
+    return html_body
+
+def get_name_and_email(address):
+    """
+    Function to get name and email from addresses like
+    Company <contact@company.com>, returned as tuple (name, email)
+    """
+    custom_sender_name = re.search("^([^<>]+)\s<([^<>]+)>$", address)
+    if custom_sender_name:
+        return custom_sender_name.group(1), custom_sender_name.group(2)
+    else:
+        return "", address
+
 
 class O365EmailBackend(BaseEmailBackend):
     def __init__(self, client_id=None, client_secret=None, tenant_id=None,
@@ -35,7 +72,7 @@ class O365EmailBackend(BaseEmailBackend):
         account = O365.Account(credentials, auth_flow_type='credentials', tenant_id=self.tenant_id)
         try:
             if account.authenticate():
-                kwargs = settings.O365_MAIL_MAILBOX_KWARGS if hasattr(settings, 'O365_MAIL_MAILBOX_KWARGS') else {}
+                kwargs = settings.O365_MAIL_MAILBOX_KWARGS
                 self.mailbox = account.mailbox(**kwargs)
                 return True
         except:
@@ -63,18 +100,29 @@ class O365EmailBackend(BaseEmailBackend):
 
     def _send(self, email_message):
         """A helper method that does the actual sending."""
-        print(email_message.__dict__)
-        # if not email_message.recipients():
-        #     return False
-        # encoding = email_message.encoding or settings.DEFAULT_CHARSET
-        # from_email = sanitize_address(email_message.from_email, encoding)
-        # recipients = [sanitize_address(addr, encoding) for addr in email_message.recipients()]
-        # message = email_message.message()
-        # try:
-        #     self.connection.sendmail(from_email, recipients, message.as_bytes(linesep='\r\n'))
-        # except smtplib.SMTPException:
-        #     if not self.fail_silently:
-        #         raise
-        #     return False
-        # return True
-        return True
+        if not email_message.recipients():
+            return False
+
+        # Basic email information
+        m = self.mailbox.new_message()
+        m.to.add(email_message.to)
+        m.cc.add(email_message.cc)
+        m.bcc.add(email_message.bcc)
+
+        m.sender.name, m.sender.address = get_name_and_email(email_message.from_email)
+        m.subject = email_message.subject
+        m.body = get_message_body(email_message)
+        
+        # Attachments
+        if email_message.attachments:
+            raise Exception("Attachments have yet to be implemented!")
+        
+        # Send it!
+        try:
+            if (settings.DEBUG and settings.O365_ACTUALLY_SEND_IN_DEBUG) or not settings.DEBUG:
+                return m.send(save_to_sent_folder=settings.O365_MAIL_SAVE_TO_SENT)
+            return True
+        except Exception as e:
+            if self.fail_silently:
+                return False
+            raise e

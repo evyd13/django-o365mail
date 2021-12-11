@@ -16,6 +16,8 @@ Then, add these settings to your Django settings.py:
 Mail can then be sent 
 
 ## Optional settings
+
+### Mailbox
 This module uses the `python-o365` library, which is also slightly customizable. Because of this you can define kwargs to be used when opening the mailbox. As an example:
 
     O365_MAIL_MAILBOX_KWARGS = {'resource': 'o365mailbox@domain.com'}
@@ -24,6 +26,12 @@ This module uses the `python-o365` library, which is also slightly customizable.
 
     account = O365.Account(credentials, auth_flow_type='credentials', tenant_id=self.tenant_id)
     mailbox = account.mailbox(**O365_MAIL_MAILBOX_KWARGS)
+
+### Other
+- `O365_MAIL_REPLACE_LINE_ENDINGS` (default: `True`)  
+  Replaces line endings with an HTML line break (`<br />`) when emails are sent in plain text.
+- `O365_MAIL_SAVE_TO_SENT` (default: `False`)  
+  Saves sent emails to the 'Sent' folder.
 
 
 ## Sandbox
