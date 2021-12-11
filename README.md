@@ -35,7 +35,7 @@ This module uses the `python-o365` library, which is also slightly customizable.
 
 
 ## Sandbox
-Create a file called `settings_secret.json` under the `sandbox/sandbox` directory (same directory as `settings.py`) with the settings as described above, except for the `EMAIL_BACKEND`. It could look like this:
+Create a file called `settings_secret.py` under the `sandbox/sandbox` directory (same directory as `settings.py`) with the settings as described above, except for the `EMAIL_BACKEND`. It could look like this:
 
     O365_MAIL_CLIENT_ID = 'REPLACE THIS'
     O365_MAIL_CLIENT_SECRET = 'REPLACE THIS'
