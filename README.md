@@ -34,3 +34,12 @@ Create a file called `settings_secret.json` under the `sandbox/sandbox` director
     O365_MAIL_TENANT_ID = 'REPLACE THIS'
 
 Then, if needed, add settings to `settings.py`.
+
+To be able to make changes to this module, run the following command to install this module in editable mode:
+
+    pip install -e ./
+
+And run the sandbox server:
+
+    cd sandbox && python manage.py runserver
+
