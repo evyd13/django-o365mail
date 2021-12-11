@@ -126,6 +126,17 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = 'django_o365mail.backend.O365EmailBackend'
-O365_MAIL_CLIENT_ID = '24b73c6a-95fa-4b62-bfaf-5735c8d23c71'
-O365_MAIL_CLIENT_SECRET = 'a1dd0b69-056d-4e63-90ea-5e365cdcaebc'
-O365_MAIL_TENANT_ID = 'f8cdef31-a31e-4b4a-93e4-5f571e91255a'
+
+try:
+    import json
+    path = str(BASE_DIR) + '/o365_secret.json'
+    f = open(path)
+    data = json.load(f)
+
+
+    O365_MAIL_CLIENT_ID = data.get('client_id')
+    O365_MAIL_CLIENT_SECRET = data.get('client_secret')
+    O365_MAIL_TENANT_ID = data.get('tenant_id')
+except FileNotFoundError as e:
+    raise Exception("Please make sure you have your O365 credentials set in {}!".format(path))
+    
