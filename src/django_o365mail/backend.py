@@ -35,7 +35,8 @@ class O365EmailBackend(BaseEmailBackend):
         account = O365.Account(credentials, auth_flow_type='credentials', tenant_id=self.tenant_id)
         try:
             if account.authenticate():
-                self.mailbox = account.mailbox()
+                kwargs = settings.O365_MAIL_MAILBOX_KWARGS if hasattr(settings, 'O365_MAIL_MAILBOX_KWARGS') else {}
+                self.mailbox = account.mailbox(**kwargs)
                 return True
         except:
             if not self.fail_silently:
@@ -62,7 +63,7 @@ class O365EmailBackend(BaseEmailBackend):
 
     def _send(self, email_message):
         """A helper method that does the actual sending."""
-        print(message.__dict__)
+        print(email_message.__dict__)
         # if not email_message.recipients():
         #     return False
         # encoding = email_message.encoding or settings.DEFAULT_CHARSET

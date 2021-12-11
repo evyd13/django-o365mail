@@ -128,15 +128,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django_o365mail.backend.O365EmailBackend'
 
 try:
-    import json
-    path = str(BASE_DIR) + '/o365_secret.json'
-    f = open(path)
-    data = json.load(f)
-
-
-    O365_MAIL_CLIENT_ID = data.get('client_id')
-    O365_MAIL_CLIENT_SECRET = data.get('client_secret')
-    O365_MAIL_TENANT_ID = data.get('tenant_id')
-except FileNotFoundError as e:
-    raise Exception("Please make sure you have your O365 credentials set in {}!".format(path))
-    
+    from .settings_secret import *
+except ModuleNotFoundError as e:
+    raise ModuleNotFoundError("Please put your settings in settings_secret.py!")

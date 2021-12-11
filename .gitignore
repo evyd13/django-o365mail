@@ -138,4 +138,6 @@ dmypy.json
 cython_debug/
 
 # Secret files
-o365_secret.json
+settings_secret.py
+o365*.json
+o365*.txt
