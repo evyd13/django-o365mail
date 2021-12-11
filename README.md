@@ -13,7 +13,7 @@ Then, add these settings to your Django settings.py:
     O365_MAIL_CLIENT_SECRET = 'REPLACE THIS'
     O365_MAIL_TENANT_ID = 'REPLACE THIS'
 
-Mail can then be sent 
+Mail can then be sent using the Django mail functions, as described [here](https://docs.djangoproject.com/en/3.2/topics/email/).
 
 ## Optional settings
 
