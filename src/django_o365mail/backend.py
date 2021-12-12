@@ -1,50 +1,15 @@
-import threading
-
 from django.core.mail.backends.base import BaseEmailBackend
+import threading
 import O365
-import re
-from django.core.mail.message import EmailMultiAlternatives
-from . import settings # It's a mask to apply defaults
+
+from . import settings
+from . import util
 
 """
 A wrapper that manages the O365 API for sending emails.
 Uses an identity (auth_flow_type == 'credentials').
 See https://docs.microsoft.com/en-us/graph/auth-v2-service?context=graph%2Fapi%2F1.0&view=graph-rest-1.0 for more details.
 """
-
-def get_html_message(message):
-    """
-    Returns None if the email is plain text only, otherwise returns the HTML message
-    """
-    if type(message) == EmailMultiAlternatives:
-        if message.alternatives:
-            for alt in message.alternatives:
-                if alt[1] == 'text/html':
-                    return alt[0]
-    return None
-
-def get_message_body(message):
-    """
-    Function to get the body for the email message, depending on settings
-    """
-    html_body = get_html_message(message)
-    if not html_body:
-        if settings.O365_MAIL_REPLACE_LINE_ENDINGS:
-            html_body = message.body.replace("\n", "<br />\n")
-        else:
-            html_body = message.body
-    return html_body
-
-def get_name_and_email(address):
-    """
-    Function to get name and email from addresses like
-    Company <contact@company.com>, returned as tuple (name, email)
-    """
-    custom_sender_name = re.search("^([^<>]+)\s<([^<>]+)>$", address)
-    if custom_sender_name:
-        return custom_sender_name.group(1), custom_sender_name.group(2)
-    else:
-        return "", address
 
 
 class O365EmailBackend(BaseEmailBackend):
@@ -109,9 +74,9 @@ class O365EmailBackend(BaseEmailBackend):
         m.cc.add(email_message.cc)
         m.bcc.add(email_message.bcc)
 
-        m.sender.name, m.sender.address = get_name_and_email(email_message.from_email)
+        m.sender.name, m.sender.address = util.get_name_and_email(email_message.from_email)
         m.subject = email_message.subject
-        m.body = get_message_body(email_message)
+        m.body = util.get_message_body(email_message)
         
         # Attachments
         if email_message.attachments:
