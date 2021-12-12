@@ -1,8 +1,7 @@
 from django.conf import settings
 
-globals()['DEBUG'] = getattr(settings, 'DEBUG') if hasattr(settings, 'DEBUG') else False
-
 defaults = {
+    'DEBUG': False,
     'O365_MAIL_CLIENT_ID': None,
     'O365_MAIL_CLIENT_SECRET': None,
     'O365_MAIL_TENANT_ID': None,
@@ -12,9 +11,8 @@ defaults = {
     'O365_ACTUALLY_SEND_IN_DEBUG': False,
 }
 
-for key, value in defaults.items():
+for key, value in list(defaults.items()):
     if not hasattr(settings, key):
         globals()[key] = value
     else:
         globals()[key] = getattr(settings, key)
-    
