@@ -41,3 +41,16 @@ def get_name_and_email(address):
         return custom_sender_name.group(1), custom_sender_name.group(2)
     else:
         return "", address
+
+def get_converter(attachment):
+    converter = None
+
+    # Determine converter
+    if isinstance(attachment, tuple):
+        converter = TupleToFileObject
+    elif isinstance(attachment, MIMEBase):
+        converter = MIMEObjectToFileObject
+    else:
+        raise Exception("Invalid attachment type!")
+
+    return converter

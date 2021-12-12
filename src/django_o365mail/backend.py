@@ -80,7 +80,11 @@ class O365EmailBackend(BaseEmailBackend):
         
         # Attachments
         if email_message.attachments:
-            raise Exception("Attachments have yet to be implemented!")
+            for attachment in email_message.attachments:
+                converter = util.get_converter(attachment)(attachment)
+                file = converter.get_file()
+                filename = converter.get_filename()
+                m.attachments.add([(file, filename)])
         
         # Send it!
         try:
