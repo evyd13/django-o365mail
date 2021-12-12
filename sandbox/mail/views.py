@@ -4,6 +4,8 @@ from django.core.mail import send_mail
 from django.core.mail import EmailMessage
 from django.conf import settings
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.application import MIMEApplication
 
 # Create your views here.
 
@@ -48,7 +50,23 @@ def test_4():
         [to_email]
     )
     mail.attach("document.txt", b'This is the contents', 'text/plain')
+    return mail.send(fail_silently=False)
+
+def test_5():
+    print("Sending a plain text message with multiple attachments!")
+    mail = EmailMessage(
+        'Subject here',
+        'This is the message',
+        None,
+        [to_email]
+    )
+    mail.attach("document.txt", b'This is the contents', 'text/plain')
     mail.attach(MIMEText("This is the content of the second one!"))
+    image = MIMEImage(open("{}{}".format(settings.STATIC_DIR, '/duck.jpg'), 'rb').read())
+    image.add_header('Content-Disposition', "attachment; filename=duck.jpg")
+    mail.attach(image)
+    mail.attach_file("{}{}".format(settings.STATIC_DIR, '/bird.pdf'))
+    mail.attach_file("{}{}".format(settings.STATIC_DIR, '/utf8.txt'))
     return mail.send(fail_silently=False)
 
 def testMail(request):
@@ -57,7 +75,7 @@ def testMail(request):
     if not o365_settings.O365_ACTUALLY_SEND_IN_DEBUG and settings.DEBUG:
         print("WARNING: Email messages won't actually be sent! Set O365_ACTUALLY_SEND_IN_DEBUG = True to actually send emails.")
     
-    for key, value in globals().items():
+    for key, value in list(globals().items()):
         if key.startswith('test_'):
             sent = value()
             assert sent == 1 or True
