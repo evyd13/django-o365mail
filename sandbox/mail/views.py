@@ -1,104 +1,7 @@
-from django.shortcuts import render
 from django.http import HttpResponse
-from django.core.mail import send_mail
-from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.conf import settings
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
-from email.mime.application import MIMEApplication
-
+from .tests import *
 # Create your views here.
-
-to_email = "sixmoonskies@gmail.com"
-
-def test_1():
-    print("Sending a plain text message!")
-    return send_mail(
-        'Test 1',
-        'Here is the message.',
-        None, # use settings.DEFAULT_FROM_EMAIL instead
-        [to_email],
-        fail_silently=False,
-    )
-
-def test_2():
-    print("Sending a plain text MULTILINE message!")
-    return send_mail(
-        'Test 2',
-        "This\nemail message\nhas multiple\nlines.",
-        None, # use settings.DEFAULT_FROM_EMAIL instead
-        [to_email],
-        fail_silently=False,
-    )
-
-def test_3():
-    print("Sending a HTML message!")
-    return send_mail(
-        'Test 3',
-        'Here is the message.',
-        None, # use settings.DEFAULT_FROM_EMAIL instead
-        [to_email],
-        fail_silently=False,
-        html_message="<p>Here's the html message</p>",
-    )
-
-def test_4():
-    print("Sending a plain text message with attachment (text file)!")
-    mail = EmailMessage(
-        'Test 4',
-        'This is the message',
-        None,
-        [to_email],
-    )
-    mail.attach("document.txt", b'This is the contents', 'text/plain')
-    return mail.send(fail_silently=False)
-
-def test_5():
-    print("Sending a plain text message with multiple attachments!")
-    mail = EmailMessage(
-        'Test 5',
-        'This is the message',
-        None,
-        [to_email],
-    )
-    mail.attach("document.txt", b'This is the contents', 'text/plain')
-    mail.attach(MIMEText("This is the content of the second one!"))
-    image = MIMEImage(open("{}{}".format(settings.STATIC_DIR, '/duck.jpg'), 'rb').read())
-    image.add_header('Content-Disposition', "attachment; filename=duck.jpg")
-    mail.attach(image)
-    mail.attach_file("{}{}".format(settings.STATIC_DIR, '/bird.pdf'))
-    mail.attach_file("{}{}".format(settings.STATIC_DIR, '/utf8.txt'))
-    return mail.send(fail_silently=False)
-
-def test_6():
-    print("Sending an HTML message with inline and normal attachments!")
-    mail = EmailMultiAlternatives(
-        'Test 6',
-        "This is the plain text message, you're missing out on a duck!",
-        None, # use settings.DEFAULT_FROM_EMAIL instead
-        [to_email],
-    )
-    # HTML message
-    mail.attach_alternative("<p>Here's the html message</p><p>And here's an image of a duck:</p><br /><img src=\"cid:duck.jpg\">", 'text/html')
-
-    # Attachments
-    duck = MIMEImage(open("{}{}".format(settings.STATIC_DIR, '/duck.jpg'), 'rb').read())
-    duck.add_header('Content-ID', 'duck.jpg')
-    mail.attach(duck)
-    mail.attach_file("{}{}".format(settings.STATIC_DIR, '/bird.pdf'))
-    mail.attach_file("{}{}".format(settings.STATIC_DIR, '/utf8.txt'))
-    return mail.send(fail_silently=False)
-
-def test_7():
-    print("Sending an HTML message (but differently)!")
-    mail = EmailMessage(
-        'Test 7',
-        "<b>This is</b> <a href=\"https://google.com\">a link to Google</a> <i>which is cool</i>",
-        None, # use settings.DEFAULT_FROM_EMAIL instead
-        [to_email],
-    )
-    mail.content_subtype = 'html'
-    return mail.send(fail_silently=False)
 
 def testMail(request):
     from django_o365mail import settings as o365_settings
@@ -106,10 +9,25 @@ def testMail(request):
     if not o365_settings.O365_ACTUALLY_SEND_IN_DEBUG and settings.DEBUG:
         print("WARNING: Email messages won't actually be sent! Set O365_ACTUALLY_SEND_IN_DEBUG = True to actually send emails.")
     
-    test_2()
-    # for key, value in list(globals().items()):
-    #     if key.startswith('test_'):
-    #         sent = value()
-    #         assert sent == 1 or True
-    #         print("")
-    return HttpResponse("tests done")
+    failed, ran = run_tests(['all'])
+        
+    return HttpResponse("{} out of {} tests ran without errors.".format(ran - failed, ran))
+
+def run_tests(tests_to_run):
+    tests_run_count = 0
+    tests_succes_count = 0
+    if tests_to_run == 'all' or 'all' in tests_to_run:
+        tests_to_run = []
+        for key in list(globals().keys()):
+            if key.startswith('test_'):
+                tests_to_run.append(key)
+
+    for test in tests_to_run:
+        tests_run_count += 1
+        function = globals().get(test, globals().get('test_' + str(test)))
+        sent = function()
+        if sent:
+            tests_succes_count += 1
+        print("")
+
+    return (tests_run_count - tests_succes_count), tests_run_count
