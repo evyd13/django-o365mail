@@ -5,6 +5,10 @@ import O365
 from . import settings
 from . import util
 
+import logging
+from .o365_logger import SimpleErrorHandler # 'Unused' but handles auth exceptions!
+
+
 """
 A wrapper that manages the O365 API for sending emails.
 Uses an identity (auth_flow_type == 'credentials').
@@ -21,6 +25,13 @@ class O365EmailBackend(BaseEmailBackend):
         self.tenant_id = tenant_id or settings.O365_MAIL_TENANT_ID
 
         self.mailbox = None
+        
+        # Handle exceptions that come from authentication (Only errors)
+        # This is needed because O365 does not raise Exceptions, it only logs them.
+        self.log_handler = SimpleErrorHandler()
+        log = logging.getLogger('O365')
+        log.addHandler(self.log_handler)
+
         self._lock = threading.RLock()
 
     def open(self):
@@ -35,12 +46,17 @@ class O365EmailBackend(BaseEmailBackend):
 
         credentials = (self.client_id, self.client_secret)
         account = O365.Account(credentials, auth_flow_type='credentials', tenant_id=self.tenant_id)
+        self.log_handler.flush()
         try:
             if account.authenticate():
                 kwargs = settings.O365_MAIL_MAILBOX_KWARGS
                 self.mailbox = account.mailbox(**kwargs)
                 return True
-        except:
+            else:
+                msg = self.log_handler.get_message()
+                if msg:
+                    raise Exception(msg)
+        except Exception as e:
             if not self.fail_silently:
                 raise
 
