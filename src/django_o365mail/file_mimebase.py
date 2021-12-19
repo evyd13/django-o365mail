@@ -1,3 +1,4 @@
+from .file_base import BaseConverter
 from email.mime.base import MIMEBase
 import base64
 import re
@@ -13,7 +14,7 @@ def get_charset(content_type):
     return type.group(1) if type else 'ascii'
 
 
-class MIMEObjectToFileObject:
+class MIMEObjectToFileObject(BaseConverter):
     def __init__(self, obj):
         assert isinstance(obj, MIMEBase) == True, "Object must be an instance of MIMEBase!"
         self.obj = obj
@@ -27,6 +28,7 @@ class MIMEObjectToFileObject:
         self.encoding = self.obj.get('Content-Transfer-Encoding') # 'base64' or '7bit' etc
         self.content = self.decode_content(self.obj.get_payload())
         self.filename = self.obj.get_filename() or 'untitled'
+        
         return io.BytesIO(self.content)
 
     def decode_content(self, content):
@@ -41,3 +43,9 @@ class MIMEObjectToFileObject:
 
     def get_filename(self):
         return self.filename
+
+    def is_inline(self):
+        return (self.get_content_id() is not None)
+
+    def get_content_id(self):
+        return self.obj.get('Content-ID')

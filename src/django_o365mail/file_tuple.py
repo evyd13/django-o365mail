@@ -1,7 +1,8 @@
+from .file_base import BaseConverter
 import io
 
 
-class TupleToFileObject:
+class TupleToFileObject(BaseConverter):
     def __init__(self, obj):
         assert isinstance(obj, tuple) == True, "Object must be an instance of tuple!"
         self.obj = obj
@@ -18,3 +19,9 @@ class TupleToFileObject:
     
     def get_filename(self):
         return self.filename
+
+    def is_inline(self):
+        return False
+
+    def get_content_id(self):
+        return None

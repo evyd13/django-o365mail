@@ -7,6 +7,8 @@ from email.mime.base import MIMEBase
 from .file_mimebase import MIMEObjectToFileObject
 from .file_tuple import TupleToFileObject
 
+def string_contains_html(string):
+    return (re.search(r'<.+?>', string) is not None)
 
 def get_html_message(message):
     """
@@ -25,7 +27,7 @@ def get_message_body(message):
     """
     html_body = get_html_message(message)
     if not html_body:
-        if settings.O365_MAIL_REPLACE_LINE_ENDINGS:
+        if settings.O365_MAIL_REPLACE_LINE_ENDINGS and not string_contains_html(message.body):
             html_body = message.body.replace("\n", "<br />\n")
         else:
             html_body = message.body

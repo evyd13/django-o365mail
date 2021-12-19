@@ -81,10 +81,15 @@ class O365EmailBackend(BaseEmailBackend):
         # Attachments
         if email_message.attachments:
             for attachment in email_message.attachments:
-                converter = util.get_converter(attachment)(attachment)
+                converter = util.get_converter(attachment)(attachment) # get_converter returns a reference to a function, thus it's ()()!
                 file = converter.get_file()
                 filename = converter.get_filename()
+
+                attachment_count = len(m.attachments)
                 m.attachments.add([(file, filename)])
+                att_obj = m.attachments[attachment_count] # count is +1 compared to index, so we already have the correct index
+                att_obj.is_inline = converter.is_inline()
+                att_obj.content_id = converter.get_content_id()
         
         # Send it!
         try:

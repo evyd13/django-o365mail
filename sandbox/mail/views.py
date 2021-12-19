@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.mail import send_mail
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.conf import settings
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
@@ -10,10 +10,11 @@ from email.mime.application import MIMEApplication
 # Create your views here.
 
 to_email = "sixmoonskies@gmail.com"
+
 def test_1():
     print("Sending a plain text message!")
     return send_mail(
-        'Subject here',
+        'Test 1',
         'Here is the message.',
         None, # use settings.DEFAULT_FROM_EMAIL instead
         [to_email],
@@ -23,7 +24,7 @@ def test_1():
 def test_2():
     print("Sending a plain text MULTILINE message!")
     return send_mail(
-        'Subject here',
+        'Test 2',
         "This\nemail message\nhas multiple\nlines.",
         None, # use settings.DEFAULT_FROM_EMAIL instead
         [to_email],
@@ -33,21 +34,21 @@ def test_2():
 def test_3():
     print("Sending a HTML message!")
     return send_mail(
-        'Subject here',
+        'Test 3',
         'Here is the message.',
         None, # use settings.DEFAULT_FROM_EMAIL instead
         [to_email],
         fail_silently=False,
-        html_message="<p>Here's the html message</p>"
+        html_message="<p>Here's the html message</p>",
     )
 
 def test_4():
     print("Sending a plain text message with attachment (text file)!")
     mail = EmailMessage(
-        'Subject here',
+        'Test 4',
         'This is the message',
         None,
-        [to_email]
+        [to_email],
     )
     mail.attach("document.txt", b'This is the contents', 'text/plain')
     return mail.send(fail_silently=False)
@@ -55,10 +56,10 @@ def test_4():
 def test_5():
     print("Sending a plain text message with multiple attachments!")
     mail = EmailMessage(
-        'Subject here',
+        'Test 5',
         'This is the message',
         None,
-        [to_email]
+        [to_email],
     )
     mail.attach("document.txt", b'This is the contents', 'text/plain')
     mail.attach(MIMEText("This is the content of the second one!"))
@@ -69,15 +70,46 @@ def test_5():
     mail.attach_file("{}{}".format(settings.STATIC_DIR, '/utf8.txt'))
     return mail.send(fail_silently=False)
 
+def test_6():
+    print("Sending an HTML message with inline and normal attachments!")
+    mail = EmailMultiAlternatives(
+        'Test 6',
+        "This is the plain text message, you're missing out on a duck!",
+        None, # use settings.DEFAULT_FROM_EMAIL instead
+        [to_email],
+    )
+    # HTML message
+    mail.attach_alternative("<p>Here's the html message</p><p>And here's an image of a duck:</p><br /><img src=\"cid:duck.jpg\">", 'text/html')
+
+    # Attachments
+    duck = MIMEImage(open("{}{}".format(settings.STATIC_DIR, '/duck.jpg'), 'rb').read())
+    duck.add_header('Content-ID', 'duck.jpg')
+    mail.attach(duck)
+    mail.attach_file("{}{}".format(settings.STATIC_DIR, '/bird.pdf'))
+    mail.attach_file("{}{}".format(settings.STATIC_DIR, '/utf8.txt'))
+    return mail.send(fail_silently=False)
+
+def test_7():
+    print("Sending an HTML message (but differently)!")
+    mail = EmailMessage(
+        'Test 7',
+        "<b>This is</b> <a href=\"https://google.com\">a link to Google</a> <i>which is cool</i>",
+        None, # use settings.DEFAULT_FROM_EMAIL instead
+        [to_email],
+    )
+    mail.content_subtype = 'html'
+    return mail.send(fail_silently=False)
+
 def testMail(request):
     from django_o365mail import settings as o365_settings
     
     if not o365_settings.O365_ACTUALLY_SEND_IN_DEBUG and settings.DEBUG:
         print("WARNING: Email messages won't actually be sent! Set O365_ACTUALLY_SEND_IN_DEBUG = True to actually send emails.")
     
-    for key, value in list(globals().items()):
-        if key.startswith('test_'):
-            sent = value()
-            assert sent == 1 or True
-            print("")
+    test_2()
+    # for key, value in list(globals().items()):
+    #     if key.startswith('test_'):
+    #         sent = value()
+    #         assert sent == 1 or True
+    #         print("")
     return HttpResponse("tests done")
