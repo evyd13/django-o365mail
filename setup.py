@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="django-o365mail",
-    version="0.0.1",
+    version="1.0.0",
     author="Evelien Dekkers",
     author_email="sixmoonskies@gmail.com",
     description="A Django email backend to use the O365 API",
