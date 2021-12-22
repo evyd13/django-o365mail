@@ -6,7 +6,7 @@ from . import settings
 from . import util
 
 import logging
-from .o365_logger import SimpleErrorHandler # 'Unused' but handles auth exceptions!
+from .o365_logger import SimpleErrorHandler # Handles auth exceptions!
 
 
 """
@@ -61,6 +61,9 @@ class O365EmailBackend(BaseEmailBackend):
                 raise
 
     def close(self):
+        """
+        As far as I know, the O365 Python API has no method to close the connection.
+        """
         pass
 
     def send_messages(self, email_messages):
@@ -97,6 +100,8 @@ class O365EmailBackend(BaseEmailBackend):
         # Attachments
         if email_message.attachments:
             for attachment in email_message.attachments:
+                # The attachment can either be a MIME object or a tuple according to Django docs.
+                # We need to convert it to a file object for the O365 API!
                 converter = util.get_converter(attachment)(attachment) # get_converter returns a reference to a function, thus it's ()()!
                 file = converter.get_file()
                 filename = converter.get_filename()
@@ -104,6 +109,8 @@ class O365EmailBackend(BaseEmailBackend):
                 attachment_count = len(m.attachments)
                 m.attachments.add([(file, filename)])
                 att_obj = m.attachments[attachment_count] # count is +1 compared to index, so we already have the correct index
+
+                # This is to support inline content (e.g. images)
                 att_obj.is_inline = converter.is_inline()
                 att_obj.content_id = converter.get_content_id()
         
