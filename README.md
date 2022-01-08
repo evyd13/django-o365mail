@@ -1,5 +1,10 @@
 # django-o365mail
 
+## About
+SMTP authenthication is getting increasingly difficult, mainly because of security.
+
+This Django email backend has been created to solve that problem when using Office 365. It's easy to use and quite customizable.
+
 ## Installation
 Run the following on your system:
 
@@ -7,11 +12,15 @@ Run the following on your system:
 
 Then, add these settings to your Django settings.py:
 
-    EMAIL_BACKEND = 'django_o365mail.backend.O365EmailBackend'
+    EMAIL_BACKEND = 'django_o365mail.EmailBackend'
 
     O365_MAIL_CLIENT_ID = 'REPLACE THIS'
     O365_MAIL_CLIENT_SECRET = 'REPLACE THIS'
     O365_MAIL_TENANT_ID = 'REPLACE THIS'
+
+If you're using git, make sure to add the following to `.gitignore`:
+
+    o365_token.txt
 
 Mail can then be sent using the Django mail functions, as described [here](https://docs.djangoproject.com/en/3.2/topics/email/).
 
@@ -32,6 +41,8 @@ This module uses the `python-o365` library, which is also slightly customizable.
   Replaces line endings with an HTML line break (`<br />`) when emails are sent in plain text.
 - `O365_MAIL_SAVE_TO_SENT` (default: `False`)  
   Saves sent emails to the 'Sent' folder.
+- `O365_SUBJECT_PREFIX` (default: `''`)  
+  Prefix for the subject of any email sent using this backend.
 
 ## Sandbox
 Create a file called `settings_secret.py` under the `sandbox/sandbox` directory (same directory as `settings.py`) with the settings as described above, except for the `EMAIL_BACKEND`. It could look like this:
