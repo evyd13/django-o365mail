@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from django.conf import settings
 from .tests import *
+from .tests import TEST_FUNCTION_PREFIX
 # Create your views here.
 
 def testMail(request):
@@ -16,18 +17,24 @@ def testMail(request):
 def run_tests(tests_to_run):
     tests_run_count = 0
     tests_succes_count = 0
+
     if tests_to_run == 'all' or 'all' in tests_to_run:
         tests_to_run = []
         for key in list(globals().keys()):
-            if key.startswith('test_'):
+            if key.startswith(TEST_FUNCTION_PREFIX):
                 tests_to_run.append(key)
+
+    if isinstance(tests_to_run, list):
+        for i in range(len(tests_to_run)):
+            if str(tests_to_run[i]).startswith(TEST_FUNCTION_PREFIX):
+                tests_to_run[i] = str(tests_to_run[i])[len(TEST_FUNCTION_PREFIX):]
 
     for test in tests_to_run:
         tests_run_count += 1
-        function = globals().get(test, globals().get('test_' + str(test)))
+        function = globals().get("".join([TEST_FUNCTION_PREFIX, test]))
         sent = function()
         if sent:
-            tests_succes_count += 1
+           tests_succes_count += 1
         print("")
 
     return (tests_run_count - tests_succes_count), tests_run_count

@@ -9,6 +9,7 @@ defaults = {
     'O365_MAIL_REPLACE_LINE_ENDINGS': True,
     'O365_MAIL_SAVE_TO_SENT': False,
     'O365_ACTUALLY_SEND_IN_DEBUG': False,
+    'O365_SUBJECT_PREFIX': '',
 }
 
 for key, value in list(defaults.items()):

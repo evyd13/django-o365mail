@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from django.conf import settings
 
+TEST_FUNCTION_PREFIX = 'test_'
 
 # Create your tests here.
 to_email = "sixmoonskies@gmail.com"

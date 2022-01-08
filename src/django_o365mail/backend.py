@@ -94,7 +94,7 @@ class O365EmailBackend(BaseEmailBackend):
         m.bcc.add(email_message.bcc)
 
         m.sender.name, m.sender.address = util.get_name_and_email(email_message.from_email)
-        m.subject = email_message.subject
+        m.subject = "".join([settings.O365_SUBJECT_PREFIX, email_message.subject])
         m.body = util.get_message_body(email_message)
         
         # Attachments
