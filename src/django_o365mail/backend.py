@@ -86,7 +86,7 @@ class O365EmailBackend(BaseEmailBackend):
 
     def _get_extra_account_kwargs(self):
         """ Read extra account kwargs """
-        account_kwargs = settings.O365_MAIL_ACCOUNT_KWARGS
+        account_kwargs = {**settings.O365_MAIL_ACCOUNT_KWARGS}
 
         # Allow to customize token backend
         if 'token_backend' in account_kwargs:
