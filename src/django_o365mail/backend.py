@@ -92,7 +92,7 @@ class O365EmailBackend(BaseEmailBackend):
         if 'token_backend' in account_kwargs:
             token_backend = import_string(account_kwargs['token_backend'])
             token_backend_kwargs = account_kwargs.pop('token_backend_kwargs', {})
-            account_kwargs['token_backend'] = token_backend(token_backend_kwargs)
+            account_kwargs['token_backend'] = token_backend(**token_backend_kwargs)
 
         return account_kwargs
 
