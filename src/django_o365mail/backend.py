@@ -90,9 +90,16 @@ class O365EmailBackend(BaseEmailBackend):
 
         # Allow to customize token backend
         if 'token_backend' in account_kwargs:
-            token_backend = import_string(account_kwargs['token_backend'])
-            token_backend_kwargs = account_kwargs.pop('token_backend_kwargs', {})
-            account_kwargs['token_backend'] = token_backend(**token_backend_kwargs)
+            token_backend = account_kwargs['token_backend']
+
+            if isinstance(token_backend, str):
+                token_backend = import_string(token_backend)
+
+            if isinstance(token_backend, type):
+                token_backend_kwargs = account_kwargs.pop('token_backend_kwargs', {})
+                token_backend = token_backend(**token_backend_kwargs)
+
+            account_kwargs['token_backend'] = token_backend
 
         return account_kwargs
 
