@@ -44,6 +44,8 @@ This module uses the `python-o365` library, which is also slightly customizable.
   Saves sent emails to the 'Sent' folder.
 - `O365_SUBJECT_PREFIX` (default: `''`)  
   Prefix for the subject of any email sent using this backend.
+- `O365_ACTUALLY_SEND_IN_DEBUG` (defaullt: `False`)  
+  The default value **prevents sending when DEBUG=True**. You most likely want to set this to `True` for development purposes. 
 
 ## Sandbox
 Create a file called `settings_secret.py` under the `sandbox/sandbox` directory (same directory as `settings.py`) with the settings as described above, except for the `EMAIL_BACKEND`. It could look like this:
