@@ -1,4 +1,5 @@
 from django.core.mail.backends.base import BaseEmailBackend
+from django.utils.module_loading import import_string
 import threading
 import O365
 
@@ -45,7 +46,8 @@ class O365EmailBackend(BaseEmailBackend):
             return False
 
         credentials = (self.client_id, self.client_secret)
-        account = O365.Account(credentials, auth_flow_type='credentials', tenant_id=self.tenant_id)
+        account_kwargs = self._get_extra_account_kwargs()
+        account = O365.Account(credentials, auth_flow_type='credentials', tenant_id=self.tenant_id, **account_kwargs)
         self.log_handler.flush()
         try:
             if account.authenticate():
@@ -81,6 +83,25 @@ class O365EmailBackend(BaseEmailBackend):
             if new_mailbox_created:
                 self.close()
         return num_sent
+
+    def _get_extra_account_kwargs(self):
+        """ Read extra account kwargs """
+        account_kwargs = {**settings.O365_MAIL_ACCOUNT_KWARGS}
+
+        # Allow to customize token backend
+        if 'token_backend' in account_kwargs:
+            token_backend = account_kwargs['token_backend']
+
+            if isinstance(token_backend, str):
+                token_backend = import_string(token_backend)
+
+            if isinstance(token_backend, type):
+                token_backend_kwargs = account_kwargs.pop('token_backend_kwargs', {})
+                token_backend = token_backend(**token_backend_kwargs)
+
+            account_kwargs['token_backend'] = token_backend
+
+        return account_kwargs
 
     def _send(self, email_message):
         """A helper method that does the actual sending."""

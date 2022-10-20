@@ -29,11 +29,12 @@ Mail can then be sent using the Django mail functions, as described [here](https
 ### Mailbox
 This module uses the `python-o365` library, which is also slightly customizable. Because of this you can define kwargs to be used when opening the mailbox. As an example:
 
+    O365_MAIL_ACCOUNT_KWARGS = {'token_backend': 'O365.utils.token.EnvTokenBackend'}
     O365_MAIL_MAILBOX_KWARGS = {'resource': 'o365mailbox@domain.com'}
 
 ... which will be passed to the mailbox() function like this:
 
-    account = O365.Account(credentials, auth_flow_type='credentials', tenant_id=self.tenant_id)
+    account = O365.Account(credentials, auth_flow_type='credentials', tenant_id=self.tenant_id, **account_kwargs)
     mailbox = account.mailbox(**O365_MAIL_MAILBOX_KWARGS)
 
 ### Other
