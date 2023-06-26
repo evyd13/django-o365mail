@@ -114,6 +114,9 @@ class O365EmailBackend(BaseEmailBackend):
         m.cc.add(email_message.cc)
         m.bcc.add(email_message.bcc)
 
+        if email_message.extra_headers and "Reply-to" in email_message.extra_headers:
+            m.reply_to.add(email_message.extra_headers.get("Reply-to"))
+
         m.sender.name, m.sender.address = util.get_name_and_email(email_message.from_email)
         m.subject = "".join([settings.O365_SUBJECT_PREFIX, email_message.subject])
         m.body = util.get_message_body(email_message)
